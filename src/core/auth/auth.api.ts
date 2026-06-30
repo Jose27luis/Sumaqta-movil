@@ -26,6 +26,27 @@ export interface ResultadoLogin {
   usuario: Usuario;
 }
 
+export interface Mozo {
+  nombre: string;
+  email: string;
+}
+
+interface MozosResponse {
+  success?: boolean;
+  data?: { name?: string; email?: string }[];
+}
+
+export async function listarMozos(tenant: string): Promise<Mozo[]> {
+  const baseUrl = resolverBaseUrl(tenant);
+  const { data } = await axios.get<MozosResponse>(`${baseUrl}/restaurant/list-waiter`, {
+    timeout: env.requestTimeout,
+  });
+  const lista = Array.isArray(data.data) ? data.data : [];
+  return lista
+    .filter((m) => typeof m.email === 'string' && m.email !== '')
+    .map((m) => ({ nombre: m.name ?? '', email: m.email ?? '' }));
+}
+
 export async function login(
   tenant: string,
   email: string,
