@@ -60,7 +60,13 @@ export default function CobrarScreen() {
       return;
     }
     cobrar.mutate(
-      { mesaId, tipo, medioPagoId, clienteId: cliente?.id ?? null },
+      {
+        mesaId,
+        tipo,
+        medioPagoId,
+        clienteId: cliente?.id ?? null,
+        items: (cuenta?.items ?? []).map((i) => ({ itemId: i.id, cantidad: i.cantidad })),
+      },
       {
         onSuccess: (res) => {
           if (res.estado === 'deshabilitado') {
