@@ -1,8 +1,14 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { env } from '@/core/config/env';
-import { buscarClientes, cerrarMesa, obtenerCuentaMesa, obtenerMediosPago } from './cobro.api';
+import { buscarClientes, cobrarMesa, obtenerCuentaMesa, obtenerMediosPago } from './cobro.api';
 import { ResultadoCobro, TipoComprobante } from './cobro.types';
+
+const TIPO_DOCUMENTO: Record<TipoComprobante, string> = {
+  boleta: '03',
+  factura: '01',
+  nota: '80',
+};
 
 export function useMediosPago() {
   return useQuery({
@@ -34,13 +40,20 @@ export interface CobrarInput {
   tipo: TipoComprobante;
   medioPagoId: string;
   clienteId: number | null;
+  items: { itemId: number; cantidad: number }[];
 }
 
 async function cobrar(input: CobrarInput): Promise<ResultadoCobro> {
   if (!env.cobroHabilitado) {
     return { estado: 'deshabilitado' };
   }
-  await cerrarMesa(Number(input.mesaId));
+  await cobrarMesa({
+    mesaId: Number(input.mesaId),
+    documentTypeId: TIPO_DOCUMENTO[input.tipo],
+    clienteId: input.clienteId,
+    medioPagoId: input.medioPagoId,
+    items: input.items,
+  });
   return { estado: 'cobrada' };
 }
 
