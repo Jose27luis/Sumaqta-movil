@@ -89,6 +89,28 @@ export async function buscarClientes(input: string): Promise<ClienteBusqueda[]> 
   }));
 }
 
-export async function cerrarMesa(mesaId: number): Promise<void> {
-  await api.post(`/restaurant/command-item/close-table/${mesaId}`);
+export interface CobrarPayload {
+  mesaId: number;
+  documentTypeId: string;
+  clienteId: number | null;
+  medioPagoId: string;
+  items: { itemId: number; cantidad: number }[];
+}
+
+interface CobrarResponse {
+  success?: boolean;
+  message?: string;
+}
+
+export async function cobrarMesa(payload: CobrarPayload): Promise<void> {
+  const { data } = await api.post<CobrarResponse>('/mobile/restaurant/charge', {
+    table_id: payload.mesaId,
+    document_type_id: payload.documentTypeId,
+    customer_id: payload.clienteId,
+    payment_method_type_id: payload.medioPagoId,
+    items: payload.items.map((i) => ({ item_id: i.itemId, quantity: i.cantidad })),
+  });
+  if (!data.success) {
+    throw new Error(data.message || 'No se pudo emitir el comprobante.');
+  }
 }
