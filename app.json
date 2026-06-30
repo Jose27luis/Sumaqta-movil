@@ -18,6 +18,11 @@
         "android.permission.BLUETOOTH_ADMIN",
         "android.permission.BLUETOOTH_CONNECT",
         "android.permission.BLUETOOTH_SCAN",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
         "android.permission.ACCESS_FINE_LOCATION"
       ],
       "adaptiveIcon": {
@@ -54,12 +59,15 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "505211cb-10e4-42d5-b72a-31264897fd34"
+        "projectId": "3e084035-f9f3-42fb-821c-7335028fb94e"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "owner": "jose_teco"
+    "owner": "jose_teco27",
+    "updates": {
+      "url": "https://u.expo.dev/3e084035-f9f3-42fb-821c-7335028fb94e"
+    }
   }
 }
