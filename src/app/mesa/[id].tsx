@@ -27,6 +27,7 @@ import { useSalon } from '@/features/salon/use-salon';
 import { useConfigRestaurante } from '@/features/config/use-config';
 
 const TODAS = -1;
+const SIN_ITEMS: ItemPedido[] = [];
 
 export default function MesaScreen() {
   const c = useTema();
@@ -48,7 +49,7 @@ export default function MesaScreen() {
   const cerrarOk = configQuery.data?.cerrarMesaHabilitado ?? false;
   const cargandoInicial = configQuery.isLoading || productosQuery.isLoading;
 
-  const items = useBag((s) => s.porMesa[mesaId] ?? []);
+  const items = useBag((s) => s.porMesa[mesaId]) ?? SIN_ITEMS;
   const agregar = useBag((s) => s.agregar);
   const limpiar = useBag((s) => s.limpiar);
 
