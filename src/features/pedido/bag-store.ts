@@ -8,6 +8,7 @@ export interface ItemPedido {
   precio: number;
   cantidad: number;
   nota: string;
+  producto: Producto;
 }
 
 interface BagState {
@@ -43,7 +44,7 @@ export const useBag = create<BagState>((set) => ({
         }
         return [
           ...items,
-          { id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1, nota: '' },
+          { id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1, nota: '', producto },
         ];
       }),
     })),
