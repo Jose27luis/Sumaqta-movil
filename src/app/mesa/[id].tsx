@@ -14,12 +14,14 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useSession } from '@/core/auth/session';
 import { radios } from '@/core/theme/tokens';
 import { Tema, useEstilos, useTema } from '@/core/theme/use-tema';
 import { fmtMoneda } from '@/shared/format';
 import { useAlturaTeclado } from '@/shared/usar-teclado';
 import { Producto } from '@/features/catalogo/catalogo.types';
 import { useCategorias, useProductos } from '@/features/catalogo/use-catalogo';
+import { useEnviarComanda } from '@/features/comanda/use-comanda';
 import { ItemPedido, totalImporte, totalItems, useBag } from '@/features/pedido/bag-store';
 import { useSalon } from '@/features/salon/use-salon';
 
@@ -33,9 +35,11 @@ export default function MesaScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const mesaId = id ?? '';
 
-  const { data: salon } = useSalon();
+  const { data: salon, refetch: refetchSalon } = useSalon();
   const productosQuery = useProductos();
   const categoriasQuery = useCategorias();
+  const usuario = useSession((s) => s.usuario);
+  const enviar = useEnviarComanda();
 
   const items = useBag((s) => s.porMesa[mesaId] ?? []);
   const agregar = useBag((s) => s.agregar);
@@ -70,20 +74,33 @@ export default function MesaScreen() {
   const total = totalImporte(items);
 
   const enviarComanda = () => {
-    Alert.alert(
-      'Enviar comanda',
-      `${nItems} ítems · ${fmtMoneda(total)}\n\nEl registro de la comanda en el servidor y la impresión se conectarán al validar el flujo con un restaurante de prueba.`,
-      [
-        { text: 'Seguir editando', style: 'cancel' },
-        {
-          text: 'Vaciar pedido',
-          style: 'destructive',
-          onPress: () => {
-            limpiar(mesaId);
-            setCarritoOpen(false);
-          },
+    if (enviar.isPending) {
+      return;
+    }
+    enviar.mutate(
+      { mesaId, mesaNombre: titulo, mozo: usuario?.nombre ?? '', items },
+      {
+        onSuccess: (res) => {
+          if (res.estado === 'deshabilitada') {
+            Alert.alert(
+              'Comanda en validación',
+              `El pedido está listo (${nItems} ítems · ${fmtMoneda(total)}).\n\nEl envío al servidor y la impresión están desactivados hasta validar el flujo con un restaurante de prueba. Se habilitan con env.comandaHabilitada.`
+            );
+            return;
+          }
+          limpiar(mesaId);
+          setCarritoOpen(false);
+          void refetchSalon();
+          const lineas = [`Guardados: ${res.guardados}`];
+          if (res.fallidos > 0) {
+            lineas.push(`Fallidos: ${res.fallidos}`);
+          }
+          lineas.push(res.impreso ? 'Comanda impresa.' : 'Sin impresión: configura una impresora.');
+          Alert.alert('Comanda enviada', lineas.join('\n'));
         },
-      ]
+        onError: (err) =>
+          Alert.alert('No se pudo enviar', err instanceof Error ? err.message : 'Error desconocido'),
+      }
     );
   };
 
@@ -174,6 +191,7 @@ export default function MesaScreen() {
         mesaId={mesaId}
         items={items}
         total={total}
+        enviando={enviar.isPending}
         onCerrar={() => setCarritoOpen(false)}
         onEnviar={enviarComanda}
       />
@@ -225,6 +243,7 @@ function Carrito({
   mesaId,
   items,
   total,
+  enviando,
   onCerrar,
   onEnviar,
 }: {
@@ -232,6 +251,7 @@ function Carrito({
   mesaId: string;
   items: ItemPedido[];
   total: number;
+  enviando: boolean;
   onCerrar: () => void;
   onEnviar: () => void;
 }) {
@@ -266,9 +286,19 @@ function Carrito({
             <Text style={styles.modalTotalLabel}>Total</Text>
             <Text style={styles.modalTotalValor}>{fmtMoneda(total)}</Text>
           </View>
-          <Pressable style={styles.enviarBtn} onPress={onEnviar}>
-            <Ionicons name="send" size={18} color="#F3EEE3" />
-            <Text style={styles.enviarText}>Enviar comanda</Text>
+          <Pressable
+            style={[styles.enviarBtn, enviando && styles.enviarBtnOff]}
+            onPress={onEnviar}
+            disabled={enviando}
+          >
+            {enviando ? (
+              <ActivityIndicator color="#F3EEE3" />
+            ) : (
+              <>
+                <Ionicons name="send" size={18} color="#F3EEE3" />
+                <Text style={styles.enviarText}>Enviar comanda</Text>
+              </>
+            )}
           </Pressable>
         </Pressable>
       </Pressable>
@@ -480,5 +510,6 @@ const crear = (c: Tema) =>
       borderRadius: radios.md,
       paddingVertical: 16,
     },
+    enviarBtnOff: { opacity: 0.6 },
     enviarText: { color: c.onBrand, fontSize: 16, fontWeight: '700' },
   });
