@@ -1,0 +1,2 @@
+patchedDependencies:
+  '@brooons/react-native-bluetooth-escpos-printer': patches/@brooons__react-native-bluetooth-escpos-printer.patch
