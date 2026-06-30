@@ -217,4 +217,8 @@ Hito 1 en progreso. Hecho:
 
 Para activar la comanda real (tras validar contra un restaurante de prueba): poner `env.comandaHabilitada = true` y confirmar el shape de `command-item/save` (`item` lleva el objeto producto completo) y que `next-id` devuelve `command_batch_id` / `table_session_id`.
 
+- Fase 3 (cobro) parcial, detrás de bandera (`env.cobroHabilitado`, hoy `false`): feature `cobro` con `GET /restaurant/configurations` (medios de pago), `GET /restaurant/table/{id}` (cuenta de la mesa) y `GET /document/search-customers` (búsqueda de cliente). Pantalla `cobrar/[id]` con resumen de cuenta, selección de comprobante (Boleta/Factura/Nota de venta), cliente (requerido para factura) y medio de pago. Acceso desde el header de `mesa/[id]`. El botón "Cobrar y cerrar" hoy no emite ni cierra: solo avisa que está en validación.
+
+Pendiente de la Fase 3 (3b): emisión real del comprobante + cierre. El payload SUNAT de `/sale-note` y `/documents` es muy complejo (se arma en `DocumentDialog.vue` de mozo4). Lo recomendado —igual que hizo el facturador con `MobileController@storeDocumentSimple`— es un endpoint mobile en pro8 que reciba `{table_id, document_type, payment_method_id, customer_id}` y arme el comprobante + `close-table` + caja del lado servidor. Mientras tanto el cierre (`POST /restaurant/command-item/close-table/{id}`) ya está cableado en `cobro.api`, detrás de la bandera.
+
 Verificado: `pnpm install`, `tsc --noEmit` (0 errores) y `expo export -p android` (bundle Metro/Hermes OK). Falta para probar en dispositivo: `eas init`, generar APK y validar login/datos contra un tenant real.
