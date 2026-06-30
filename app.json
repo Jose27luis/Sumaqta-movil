@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "Sumaqta",
+    "slug": "sumaqtamovil",
+    "version": "1.0.0",
+    "newArchEnabled": false,
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "sumaqtamovil",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "icon": "./assets/images/icon.png"
+    },
+    "android": {
+      "package": "cloud.insoft.sumaqtamovil",
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#F3EEE3",
+        "foregroundImage": "./assets/images/icon.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F3EEE3",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 180,
+          "android": {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 180
+          }
+        }
+      ],
+      "expo-secure-store",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {}
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
+  }
+}
