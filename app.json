@@ -5,11 +5,11 @@
     "version": "1.0.0",
     "newArchEnabled": false,
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/amantix-icon.png",
     "scheme": "sumaqtamovil",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/amantix-icon.png"
     },
     "android": {
       "package": "cloud.insoft.sumaqtamovil",
@@ -21,8 +21,8 @@
         "android.permission.ACCESS_FINE_LOCATION"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#F3EEE3",
-        "foregroundImage": "./assets/images/icon.png"
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/amantix-icono.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -35,11 +35,11 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F3EEE3",
-          "image": "./assets/images/splash-icon.png",
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/amantix-icono.png",
           "imageWidth": 180,
           "android": {
-            "image": "./assets/images/splash-icon.png",
+            "image": "./assets/images/amantix-icono.png",
             "imageWidth": 180
           }
         }
@@ -52,10 +52,14 @@
       "reactCompiler": true
     },
     "extra": {
-      "router": {}
+      "router": {},
+      "eas": {
+        "projectId": "505211cb-10e4-42d5-b72a-31264897fd34"
+      }
     },
     "runtimeVersion": {
       "policy": "appVersion"
-    }
+    },
+    "owner": "jose_teco"
   }
 }
