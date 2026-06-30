@@ -24,6 +24,7 @@ import { useCategorias, useProductos } from '@/features/catalogo/use-catalogo';
 import { useEnviarComanda } from '@/features/comanda/use-comanda';
 import { ItemPedido, totalImporte, totalItems, useBag } from '@/features/pedido/bag-store';
 import { useSalon } from '@/features/salon/use-salon';
+import { useConfigRestaurante } from '@/features/config/use-config';
 
 const TODAS = -1;
 
@@ -38,8 +39,14 @@ export default function MesaScreen() {
   const { data: salon, refetch: refetchSalon } = useSalon();
   const productosQuery = useProductos();
   const categoriasQuery = useCategorias();
+  const configQuery = useConfigRestaurante();
   const usuario = useSession((s) => s.usuario);
   const enviar = useEnviarComanda();
+
+  const posOk = configQuery.data?.posHabilitado ?? false;
+  const comandaOk = configQuery.data?.comandaHabilitada ?? false;
+  const cerrarOk = configQuery.data?.cerrarMesaHabilitado ?? false;
+  const cargandoInicial = configQuery.isLoading || productosQuery.isLoading;
 
   const items = useBag((s) => s.porMesa[mesaId] ?? []);
   const agregar = useBag((s) => s.agregar);
@@ -111,76 +118,92 @@ export default function MesaScreen() {
           <Ionicons name="chevron-back" size={24} color={c.text} />
         </Pressable>
         <Text style={styles.titulo}>{titulo}</Text>
-        <Pressable
-          style={styles.iconoBtn}
-          onPress={() => router.push(`/cobrar/${mesaId}`)}
-          accessibilityLabel="Cobrar"
-        >
-          <Ionicons name="card-outline" size={22} color={c.text} />
-        </Pressable>
-      </View>
-
-      <View style={styles.buscador}>
-        <Ionicons name="search" size={18} color={c.faint} />
-        <TextInput
-          style={styles.buscadorInput}
-          value={busqueda}
-          onChangeText={setBusqueda}
-          autoCapitalize="none"
-          autoCorrect={false}
-          accessibilityLabel="Buscar producto"
-        />
-        {busqueda !== '' ? (
-          <Pressable onPress={() => setBusqueda('')}>
-            <Ionicons name="close-circle" size={18} color={c.faint} />
+        {cerrarOk ? (
+          <Pressable
+            style={styles.iconoBtn}
+            onPress={() => router.push(`/cobrar/${mesaId}`)}
+            accessibilityLabel="Cobrar"
+          >
+            <Ionicons name="card-outline" size={22} color={c.text} />
           </Pressable>
-        ) : null}
+        ) : (
+          <View style={styles.iconoBtn} />
+        )}
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-        <ChipCategoria nombre="Todas" activo={categoria === TODAS} onPress={() => setCategoria(TODAS)} />
-        {(categoriasQuery.data ?? []).map((cat) => (
-          <ChipCategoria
-            key={cat.id}
-            nombre={cat.nombre}
-            activo={categoria === cat.id}
-            onPress={() => setCategoria(cat.id)}
-          />
-        ))}
-      </ScrollView>
-
-      {productosQuery.isLoading ? (
+      {cargandoInicial ? (
         <View style={styles.estado}>
           <ActivityIndicator color={c.brand} />
         </View>
-      ) : productosQuery.isError ? (
-        <View style={styles.estado}>
-          <Text style={styles.estadoText}>No se pudo cargar el catálogo.</Text>
-          <Pressable style={styles.reintentar} onPress={() => void productosQuery.refetch()}>
-            <Text style={styles.reintentarText}>Reintentar</Text>
-          </Pressable>
+      ) : !posOk ? (
+        <View style={styles.bloqueado}>
+          <Ionicons name="lock-closed-outline" size={40} color={c.faint} />
+          <Text style={styles.bloqueadoTitulo}>Toma de pedidos deshabilitada</Text>
+          <Text style={styles.bloqueadoSub}>
+            El POS para mozos está desactivado en la configuración del restaurante.
+          </Text>
         </View>
       ) : (
-        <ScrollView
-          contentContainerStyle={[styles.lista, { paddingBottom: insets.bottom + (nItems > 0 ? 96 : 24) }]}
-          keyboardShouldPersistTaps="handled"
-        >
-          {productos.length === 0 ? (
-            <Text style={styles.vacio}>No hay productos para mostrar.</Text>
-          ) : (
-            productos.map((p) => (
-              <ProductoFila
-                key={p.id}
-                producto={p}
-                enCarrito={cantidades[p.id] ?? 0}
-                onAgregar={() => agregar(mesaId, p)}
+        <>
+          <View style={styles.buscador}>
+            <Ionicons name="search" size={18} color={c.faint} />
+            <TextInput
+              style={styles.buscadorInput}
+              value={busqueda}
+              onChangeText={setBusqueda}
+              autoCapitalize="none"
+              autoCorrect={false}
+              accessibilityLabel="Buscar producto"
+            />
+            {busqueda !== '' ? (
+              <Pressable onPress={() => setBusqueda('')}>
+                <Ionicons name="close-circle" size={18} color={c.faint} />
+              </Pressable>
+            ) : null}
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+            <ChipCategoria nombre="Todas" activo={categoria === TODAS} onPress={() => setCategoria(TODAS)} />
+            {(categoriasQuery.data ?? []).map((cat) => (
+              <ChipCategoria
+                key={cat.id}
+                nombre={cat.nombre}
+                activo={categoria === cat.id}
+                onPress={() => setCategoria(cat.id)}
               />
-            ))
+            ))}
+          </ScrollView>
+
+          {productosQuery.isError ? (
+            <View style={styles.estado}>
+              <Text style={styles.estadoText}>No se pudo cargar el catálogo.</Text>
+              <Pressable style={styles.reintentar} onPress={() => void productosQuery.refetch()}>
+                <Text style={styles.reintentarText}>Reintentar</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <ScrollView
+              contentContainerStyle={[styles.lista, { paddingBottom: insets.bottom + (nItems > 0 ? 96 : 24) }]}
+              keyboardShouldPersistTaps="handled"
+            >
+              {productos.length === 0 ? (
+                <Text style={styles.vacio}>No hay productos para mostrar.</Text>
+              ) : (
+                productos.map((p) => (
+                  <ProductoFila
+                    key={p.id}
+                    producto={p}
+                    enCarrito={cantidades[p.id] ?? 0}
+                    onAgregar={() => agregar(mesaId, p)}
+                  />
+                ))
+              )}
+            </ScrollView>
           )}
-        </ScrollView>
+        </>
       )}
 
-      {nItems > 0 ? (
+      {posOk && nItems > 0 ? (
         <View style={[styles.barra, { paddingBottom: insets.bottom + 12 }]}>
           <Pressable style={styles.barraBtn} onPress={() => setCarritoOpen(true)}>
             <View style={styles.barraBadge}>
@@ -198,6 +221,7 @@ export default function MesaScreen() {
         items={items}
         total={total}
         enviando={enviar.isPending}
+        comandaOk={comandaOk}
         onCerrar={() => setCarritoOpen(false)}
         onEnviar={enviarComanda}
       />
@@ -250,6 +274,7 @@ function Carrito({
   items,
   total,
   enviando,
+  comandaOk,
   onCerrar,
   onEnviar,
 }: {
@@ -258,6 +283,7 @@ function Carrito({
   items: ItemPedido[];
   total: number;
   enviando: boolean;
+  comandaOk: boolean;
   onCerrar: () => void;
   onEnviar: () => void;
 }) {
@@ -292,20 +318,24 @@ function Carrito({
             <Text style={styles.modalTotalLabel}>Total</Text>
             <Text style={styles.modalTotalValor}>{fmtMoneda(total)}</Text>
           </View>
-          <Pressable
-            style={[styles.enviarBtn, enviando && styles.enviarBtnOff]}
-            onPress={onEnviar}
-            disabled={enviando}
-          >
-            {enviando ? (
-              <ActivityIndicator color="#F3EEE3" />
-            ) : (
-              <>
-                <Ionicons name="send" size={18} color="#F3EEE3" />
-                <Text style={styles.enviarText}>Enviar comanda</Text>
-              </>
-            )}
-          </Pressable>
+          {comandaOk ? (
+            <Pressable
+              style={[styles.enviarBtn, enviando && styles.enviarBtnOff]}
+              onPress={onEnviar}
+              disabled={enviando}
+            >
+              {enviando ? (
+                <ActivityIndicator color="#F3EEE3" />
+              ) : (
+                <>
+                  <Ionicons name="send" size={18} color="#F3EEE3" />
+                  <Text style={styles.enviarText}>Enviar comanda</Text>
+                </>
+              )}
+            </Pressable>
+          ) : (
+            <Text style={styles.comandaOff}>El envío de comanda está deshabilitado en la configuración.</Text>
+          )}
         </Pressable>
       </Pressable>
     </Modal>
@@ -400,6 +430,10 @@ const crear = (c: Tema) =>
     reintentarText: { color: c.text, fontWeight: '700', fontSize: 14 },
     lista: { paddingHorizontal: 16, gap: 10 },
     vacio: { fontSize: 14, color: c.muted, textAlign: 'center', paddingVertical: 40 },
+    bloqueado: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 },
+    bloqueadoTitulo: { fontSize: 18, fontWeight: '800', color: c.text, textAlign: 'center' },
+    bloqueadoSub: { fontSize: 14, color: c.muted, textAlign: 'center', lineHeight: 20 },
+    comandaOff: { fontSize: 13.5, color: c.muted, textAlign: 'center', paddingVertical: 14, lineHeight: 19 },
     prod: {
       flexDirection: 'row',
       alignItems: 'center',
