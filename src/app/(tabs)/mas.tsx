@@ -1,17 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useSession } from '@/core/auth/session';
+import { usePrinter } from '@/core/printer/printer-store';
 import { radios } from '@/core/theme/tokens';
 import { Tema, useEstilos, useTema } from '@/core/theme/use-tema';
 
 export default function MasScreen() {
   const c = useTema();
   const styles = useEstilos(crear);
+  const router = useRouter();
   const usuario = useSession((s) => s.usuario);
   const tenant = useSession((s) => s.tenant);
   const cerrar = useSession((s) => s.cerrar);
+  const impresoraActiva = usePrinter((s) => s.activa);
 
   const confirmarSalir = () => {
     Alert.alert('Cerrar sesión', '¿Seguro que deseas salir?', [
@@ -40,6 +44,19 @@ export default function MasScreen() {
           <Fila etiqueta="Rol" valor={usuario?.rol || 'Mozo'} />
           {usuario?.ruc ? <Fila etiqueta="RUC" valor={usuario.ruc} ultimo /> : null}
         </View>
+
+        <Pressable style={styles.opcion} onPress={() => router.push('/impresora')}>
+          <View style={styles.opcionIcono}>
+            <Ionicons name="print-outline" size={20} color={c.brand} />
+          </View>
+          <View style={styles.opcionTexto}>
+            <Text style={styles.opcionTitulo}>Impresora</Text>
+            <Text style={styles.opcionSub}>
+              {impresoraActiva ? 'Conectada para comandas' : 'Sin impresora seleccionada'}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={c.faint} />
+        </Pressable>
 
         <Pressable style={styles.salir} onPress={confirmarSalir}>
           <Ionicons name="log-out-outline" size={20} color={c.danger} />
@@ -93,6 +110,27 @@ const crear = (c: Tema) =>
     filaBorde: { borderBottomWidth: 1, borderBottomColor: c.border },
     filaEtiqueta: { fontSize: 14, color: c.muted, fontWeight: '600' },
     filaValor: { fontSize: 14.5, color: c.text, fontWeight: '700' },
+    opcion: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      backgroundColor: c.surface,
+      borderRadius: radios.lg,
+      borderWidth: 1,
+      borderColor: c.border,
+      padding: 14,
+    },
+    opcionIcono: {
+      width: 38,
+      height: 38,
+      borderRadius: 11,
+      backgroundColor: c.surfaceAlt,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    opcionTexto: { flex: 1 },
+    opcionTitulo: { fontSize: 15, fontWeight: '700', color: c.text },
+    opcionSub: { fontSize: 12.5, color: c.muted, marginTop: 2 },
     salir: {
       flexDirection: 'row',
       alignItems: 'center',
