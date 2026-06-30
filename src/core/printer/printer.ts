@@ -143,6 +143,50 @@ export async function imprimirTicket(direccion: string, datos: DatosTicket): Pro
   await BluetoothEscposPrinter.printAndFeed(3);
 }
 
+export interface ItemComanda {
+  nombre: string;
+  cantidad: number;
+  nota: string;
+}
+
+export interface DatosComanda {
+  mesa: string;
+  mozo: string;
+  hora: string;
+  items: ItemComanda[];
+}
+
+export async function imprimirComanda(direccion: string, datos: DatosComanda): Promise<void> {
+  const { BluetoothManager, BluetoothEscposPrinter } = requerirLib();
+  await BluetoothManager.connect(direccion);
+  await BluetoothEscposPrinter.printerInit();
+
+  await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.CENTER);
+  await BluetoothEscposPrinter.printText('COMANDA\n', { widthtimes: 1, heigthtimes: 1 });
+
+  await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.LEFT);
+  await BluetoothEscposPrinter.printText(`${linea()}\n`, {});
+  await BluetoothEscposPrinter.printText(`Mesa: ${datos.mesa}\n`, {});
+  if (datos.mozo) {
+    await BluetoothEscposPrinter.printText(`Mozo: ${datos.mozo}\n`, {});
+  }
+  await BluetoothEscposPrinter.printText(`Hora: ${datos.hora}\n`, {});
+  await BluetoothEscposPrinter.printText(`${linea()}\n`, {});
+
+  for (const it of datos.items) {
+    await BluetoothEscposPrinter.printText(`${it.cantidad} x ${it.nombre}\n`, {
+      widthtimes: 1,
+      heigthtimes: 1,
+    });
+    if (it.nota.trim() !== '') {
+      await BluetoothEscposPrinter.printText(`   >> ${it.nota}\n`, {});
+    }
+  }
+
+  await BluetoothEscposPrinter.printText(`${linea()}\n`, {});
+  await BluetoothEscposPrinter.printAndFeed(3);
+}
+
 export async function imprimirPrueba(direccion: string): Promise<void> {
   const { BluetoothManager, BluetoothEscposPrinter } = requerirLib();
   await BluetoothManager.connect(direccion);
