@@ -187,6 +187,64 @@ export async function imprimirComanda(direccion: string, datos: DatosComanda): P
   await BluetoothEscposPrinter.printAndFeed(3);
 }
 
+export interface ItemPrecuenta {
+  nombre: string;
+  cantidad: number;
+  precio: number;
+}
+
+export interface DatosPrecuenta {
+  restaurante: string;
+  mesa: string;
+  mozo: string;
+  fecha: string;
+  items: ItemPrecuenta[];
+  total: number;
+}
+
+export async function imprimirPrecuenta(direccion: string, datos: DatosPrecuenta): Promise<void> {
+  const { BluetoothManager, BluetoothEscposPrinter } = requerirLib();
+  await BluetoothManager.connect(direccion);
+  await BluetoothEscposPrinter.printerInit();
+
+  await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.CENTER);
+  if (datos.restaurante) {
+    await BluetoothEscposPrinter.printText(`${datos.restaurante}\n`, { widthtimes: 1, heigthtimes: 1 });
+  }
+  await BluetoothEscposPrinter.printText('PRECUENTA\n', {});
+
+  await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.LEFT);
+  await BluetoothEscposPrinter.printText(`${linea()}\n`, {});
+  await BluetoothEscposPrinter.printText(`Mesa: ${datos.mesa}\n`, {});
+  if (datos.mozo) {
+    await BluetoothEscposPrinter.printText(`Mozo: ${datos.mozo}\n`, {});
+  }
+  await BluetoothEscposPrinter.printText(`Fecha: ${datos.fecha}\n`, {});
+  await BluetoothEscposPrinter.printText(`${linea()}\n`, {});
+
+  for (const it of datos.items) {
+    await BluetoothEscposPrinter.printText(`${it.nombre}\n`, {});
+    await BluetoothEscposPrinter.printColumn(
+      [16, 16],
+      [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
+      [`${it.cantidad} x ${fmtMonto(it.precio, 'PEN')}`, fmtMonto(it.cantidad * it.precio, 'PEN')],
+      {},
+    );
+  }
+
+  await BluetoothEscposPrinter.printText(`${linea()}\n`, {});
+  await BluetoothEscposPrinter.printColumn(
+    [16, 16],
+    [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
+    ['TOTAL', fmtMonto(datos.total, 'PEN')],
+    { widthtimes: 1, heigthtimes: 1 },
+  );
+
+  await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.CENTER);
+  await BluetoothEscposPrinter.printText('\nEste documento no es comprobante de pago\n', {});
+  await BluetoothEscposPrinter.printAndFeed(3);
+}
+
 export async function imprimirPrueba(direccion: string): Promise<void> {
   const { BluetoothManager, BluetoothEscposPrinter } = requerirLib();
   await BluetoothManager.connect(direccion);
