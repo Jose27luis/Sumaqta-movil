@@ -213,6 +213,8 @@ Hito 1 en progreso. Hecho:
 
 - Toma de pedido en `mesa/[id]`: feature `catalogo` (`GET /restaurant/items` y `/restaurant/categories`), carrito por mesa (`features/pedido/bag-store`, Zustand) con búsqueda, filtro por categoría, cantidades y nota por ítem, y hoja inferior de pedido con total.
 
-Pendiente del Hito 1: conectar el envío de comanda al backend (`POST /restaurant/table/{id}` para guardar el pedido y `POST /print-orders` + impresión Bluetooth). Hoy el botón "Enviar comanda" no escribe en el servidor: el payload de mesa es complejo y modifica mesas reales, así que se conecta recién al validar el flujo contra un restaurante de prueba.
+- Flujo de comanda implementado detrás de bandera (`env.comandaHabilitada`, hoy `false`): feature `comanda` con `GET /restaurant/command-item/next-id` (batch + sesión de mesa), `POST /restaurant/command-item/save` por ítem, y `imprimirComanda` (ESC/POS de cocina, sin precios) en `core/printer`. El hook `useEnviarComanda` orquesta batch → guardar ítems → imprimir. Con la bandera en `false` no escribe ni imprime: solo avisa que está en validación.
 
-Falta antes de probar en dispositivo: `pnpm install`, configurar EAS (`eas init`) y validar el login contra un tenant real.
+Para activar la comanda real (tras validar contra un restaurante de prueba): poner `env.comandaHabilitada = true` y confirmar el shape de `command-item/save` (`item` lleva el objeto producto completo) y que `next-id` devuelve `command_batch_id` / `table_session_id`.
+
+Verificado: `pnpm install`, `tsc --noEmit` (0 errores) y `expo export -p android` (bundle Metro/Hermes OK). Falta para probar en dispositivo: `eas init`, generar APK y validar login/datos contra un tenant real.
