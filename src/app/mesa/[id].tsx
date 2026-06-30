@@ -15,6 +15,8 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSession } from '@/core/auth/session';
+import { usePrinter } from '@/core/printer/printer-store';
+import { imprimirPrecuenta, impresionDisponible } from '@/core/printer/printer';
 import { radios } from '@/core/theme/tokens';
 import { Tema, useEstilos, useTema } from '@/core/theme/use-tema';
 import { fmtMoneda } from '@/shared/format';
@@ -22,12 +24,19 @@ import { useAlturaTeclado } from '@/shared/usar-teclado';
 import { Producto } from '@/features/catalogo/catalogo.types';
 import { useCategorias, useProductos } from '@/features/catalogo/use-catalogo';
 import { useEnviarComanda } from '@/features/comanda/use-comanda';
+import { useCuentaMesa } from '@/features/cobro/use-cobro';
 import { ItemPedido, totalImporte, totalItems, useBag } from '@/features/pedido/bag-store';
 import { useSalon } from '@/features/salon/use-salon';
 import { useConfigRestaurante } from '@/features/config/use-config';
 
 const TODAS = -1;
 const SIN_ITEMS: ItemPedido[] = [];
+
+function fechaHora(): string {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
 
 export default function MesaScreen() {
   const c = useTema();
@@ -41,8 +50,12 @@ export default function MesaScreen() {
   const productosQuery = useProductos();
   const categoriasQuery = useCategorias();
   const configQuery = useConfigRestaurante();
+  const cuentaQuery = useCuentaMesa(mesaId);
   const usuario = useSession((s) => s.usuario);
+  const tenant = useSession((s) => s.tenant);
+  const impresoraActiva = usePrinter((s) => s.activa);
   const enviar = useEnviarComanda();
+  const [imprimiendoPre, setImprimiendoPre] = useState(false);
 
   const posOk = configQuery.data?.posHabilitado ?? false;
   const comandaOk = configQuery.data?.comandaHabilitada ?? false;
@@ -112,6 +125,40 @@ export default function MesaScreen() {
     );
   };
 
+  const imprimirPrecuentaMesa = async () => {
+    if (imprimiendoPre) {
+      return;
+    }
+    const cuenta = cuentaQuery.data;
+    const lineas =
+      cuenta && cuenta.items.length > 0
+        ? cuenta.items.map((i) => ({ nombre: i.nombre, cantidad: i.cantidad, precio: i.precio }))
+        : items.map((i) => ({ nombre: i.nombre, cantidad: i.cantidad, precio: i.precio }));
+    if (lineas.length === 0) {
+      Alert.alert('Sin consumo', 'La mesa no tiene productos para la precuenta.');
+      return;
+    }
+    if (!impresoraActiva || !impresionDisponible()) {
+      Alert.alert('Sin impresora', 'Configura una impresora en Más → Impresora.');
+      return;
+    }
+    setImprimiendoPre(true);
+    try {
+      await imprimirPrecuenta(impresoraActiva, {
+        restaurante: tenant,
+        mesa: titulo,
+        mozo: usuario?.nombre ?? '',
+        fecha: fechaHora(),
+        items: lineas,
+        total: lineas.reduce((acc, i) => acc + i.cantidad * i.precio, 0),
+      });
+    } catch (e) {
+      Alert.alert('No se pudo imprimir', e instanceof Error ? e.message : 'Error desconocido');
+    } finally {
+      setImprimiendoPre(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.header}>
@@ -119,17 +166,28 @@ export default function MesaScreen() {
           <Ionicons name="chevron-back" size={24} color={c.text} />
         </Pressable>
         <Text style={styles.titulo}>{titulo}</Text>
-        {cerrarOk ? (
+        <View style={styles.headerAcciones}>
           <Pressable
             style={styles.iconoBtn}
-            onPress={() => router.push(`/cobrar/${mesaId}`)}
-            accessibilityLabel="Cobrar"
+            onPress={() => void imprimirPrecuentaMesa()}
+            accessibilityLabel="Imprimir precuenta"
           >
-            <Ionicons name="card-outline" size={22} color={c.text} />
+            {imprimiendoPre ? (
+              <ActivityIndicator color={c.text} size="small" />
+            ) : (
+              <Ionicons name="receipt-outline" size={22} color={c.text} />
+            )}
           </Pressable>
-        ) : (
-          <View style={styles.iconoBtn} />
-        )}
+          {cerrarOk ? (
+            <Pressable
+              style={styles.iconoBtn}
+              onPress={() => router.push(`/cobrar/${mesaId}`)}
+              accessibilityLabel="Cobrar"
+            >
+              <Ionicons name="card-outline" size={22} color={c.text} />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       {cargandoInicial ? (
@@ -399,6 +457,7 @@ const crear = (c: Tema) =>
       paddingBottom: 4,
     },
     iconoBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+    headerAcciones: { flexDirection: 'row', alignItems: 'center' },
     titulo: { fontSize: 18, fontWeight: '800', color: c.text },
     buscador: {
       flexDirection: 'row',
