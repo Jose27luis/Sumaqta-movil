@@ -20,8 +20,7 @@ import { env } from '@/core/config/env';
 import { radios } from '@/core/theme/tokens';
 import { Tema, useEstilos, useTema } from '@/core/theme/use-tema';
 
-const PIN_MIN = 4;
-const PIN_MAX = 6;
+const PIN_LEN = 4;
 
 export default function LoginScreen() {
   const c = useTema();
@@ -81,30 +80,36 @@ export default function LoginScreen() {
     setErrorLogin(null);
   };
 
-  const onDigito = (d: string) => {
-    if (pin.length >= PIN_MAX) {
-      return;
-    }
-    setErrorLogin(null);
-    setPin(pin + d);
-  };
-
-  const onBorrar = () => setPin(pin.slice(0, -1));
-
-  const onIngresar = async () => {
-    if (!mozoSel || pin.length < PIN_MIN || entrando) {
-      return;
-    }
+  const intentarLogin = async (pinCompleto: string, mozo: Mozo) => {
     setEntrando(true);
     setErrorLogin(null);
     try {
-      const resultado = await login(dominio.trim(), mozoSel.email, pin);
+      const resultado = await login(dominio.trim(), mozo.email, pinCompleto);
       await iniciar(dominio.trim(), resultado.token, resultado.usuario);
-    } catch {
-      setErrorLogin('PIN incorrecto. Inténtalo de nuevo.');
+    } catch (err) {
+      setErrorLogin(err instanceof Error ? err.message : 'No se pudo iniciar sesión.');
       setPin('');
       setEntrando(false);
     }
+  };
+
+  const onDigito = (d: string) => {
+    if (pin.length >= PIN_LEN || entrando || !mozoSel) {
+      return;
+    }
+    const nuevo = pin + d;
+    setPin(nuevo);
+    setErrorLogin(null);
+    if (nuevo.length === PIN_LEN) {
+      void intentarLogin(nuevo, mozoSel);
+    }
+  };
+
+  const onBorrar = () => {
+    if (entrando) {
+      return;
+    }
+    setPin(pin.slice(0, -1));
   };
 
   if (!confirmado) {
@@ -213,7 +218,7 @@ export default function LoginScreen() {
         <Text style={styles.pinSub}>Ingresa tu PIN</Text>
 
         <View style={styles.puntos}>
-          {Array.from({ length: PIN_MAX }).map((_, i) => (
+          {Array.from({ length: PIN_LEN }).map((_, i) => (
             <View key={i} style={[styles.punto, i < pin.length && styles.puntoLleno]} />
           ))}
         </View>
@@ -236,20 +241,14 @@ export default function LoginScreen() {
         </Pressable>
       </View>
 
-      <Pressable
-        style={[styles.button, styles.pinBoton, (pin.length < PIN_MIN || entrando) && styles.buttonDisabled]}
-        onPress={onIngresar}
-        disabled={pin.length < PIN_MIN || entrando}
-      >
+      <View style={styles.pinFooter}>
         {entrando ? (
-          <ActivityIndicator color={c.onBrand} />
-        ) : (
-          <>
-            <Text style={styles.buttonText}>Ingresar</Text>
-            <Ionicons name="arrow-forward" size={17} color={c.onBrand} />
-          </>
-        )}
-      </Pressable>
+          <View style={styles.verificando}>
+            <ActivityIndicator color={c.brand} />
+            <Text style={styles.verificandoText}>Verificando…</Text>
+          </View>
+        ) : null}
+      </View>
     </SafeAreaView>
   );
 }
@@ -393,5 +392,13 @@ const crear = (c: Tema) =>
     },
     teclaVacia: { width: '27%', aspectRatio: 1.7 },
     teclaText: { fontFamily: c.monoSemi, fontSize: 26, color: c.text },
-    pinBoton: { marginHorizontal: 28, marginTop: 'auto', marginBottom: 24 },
+    pinFooter: {
+      marginTop: 'auto',
+      minHeight: 60,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 20,
+    },
+    verificando: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    verificandoText: { fontSize: 15, color: c.muted, fontWeight: '600' },
   });
