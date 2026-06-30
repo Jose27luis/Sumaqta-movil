@@ -111,7 +111,13 @@ export default function MesaScreen() {
           <Ionicons name="chevron-back" size={24} color={c.text} />
         </Pressable>
         <Text style={styles.titulo}>{titulo}</Text>
-        <View style={styles.iconoBtn} />
+        <Pressable
+          style={styles.iconoBtn}
+          onPress={() => router.push(`/cobrar/${mesaId}`)}
+          accessibilityLabel="Cobrar"
+        >
+          <Ionicons name="card-outline" size={22} color={c.text} />
+        </Pressable>
       </View>
 
       <View style={styles.buscador}>
