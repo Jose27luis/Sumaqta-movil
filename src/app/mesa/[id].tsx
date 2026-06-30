@@ -162,7 +162,12 @@ export default function MesaScreen() {
             ) : null}
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.chipsScroll}
+            contentContainerStyle={styles.chips}
+          >
             <ChipCategoria nombre="Todas" activo={categoria === TODAS} onPress={() => setCategoria(TODAS)} />
             {(categoriasQuery.data ?? []).map((cat) => (
               <ChipCategoria
@@ -183,6 +188,7 @@ export default function MesaScreen() {
             </View>
           ) : (
             <ScrollView
+              style={styles.listaScroll}
               contentContainerStyle={[styles.lista, { paddingBottom: insets.bottom + (nItems > 0 ? 96 : 24) }]}
               keyboardShouldPersistTaps="handled"
             >
@@ -407,17 +413,19 @@ const crear = (c: Tema) =>
       marginTop: 6,
     },
     buscadorInput: { flex: 1, fontSize: 15, color: c.text },
-    chips: { paddingHorizontal: 16, gap: 8, paddingVertical: 12 },
+    chipsScroll: { flexGrow: 0 },
+    chips: { paddingHorizontal: 16, gap: 8, paddingVertical: 10, alignItems: 'center' },
     chip: {
-      paddingHorizontal: 15,
-      paddingVertical: 8,
+      paddingHorizontal: 14,
+      height: 34,
+      justifyContent: 'center',
       borderRadius: 999,
       backgroundColor: c.surface,
       borderWidth: 1,
       borderColor: c.border,
     },
     chipActivo: { backgroundColor: c.brand, borderColor: c.brand },
-    chipText: { fontSize: 13, fontWeight: '600', color: c.muted },
+    chipText: { fontSize: 13, fontWeight: '600', color: c.muted, lineHeight: 16 },
     chipTextActivo: { color: c.onBrand },
     estado: { paddingVertical: 60, alignItems: 'center', gap: 14 },
     estadoText: { color: c.muted, fontSize: 14 },
@@ -428,6 +436,7 @@ const crear = (c: Tema) =>
       borderRadius: radios.sm,
     },
     reintentarText: { color: c.text, fontWeight: '700', fontSize: 14 },
+    listaScroll: { flex: 1 },
     lista: { paddingHorizontal: 16, gap: 10 },
     vacio: { fontSize: 14, color: c.muted, textAlign: 'center', paddingVertical: 40 },
     bloqueado: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 },
