@@ -88,6 +88,7 @@ export default function SalonScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
+            style={styles.chipsScroll}
             contentContainerStyle={styles.chips}
           >
             {ambientes.map((nombre) => {
@@ -189,17 +190,19 @@ const crear = (c: Tema) =>
       borderRadius: radios.sm,
     },
     reintentarText: { color: c.text, fontWeight: '700', fontSize: 14 },
-    chips: { paddingHorizontal: 20, gap: 8, paddingVertical: 6 },
+    chipsScroll: { flexGrow: 0 },
+    chips: { paddingHorizontal: 20, gap: 8, paddingVertical: 4, alignItems: 'center' },
     chip: {
-      paddingHorizontal: 16,
-      paddingVertical: 9,
+      paddingHorizontal: 14,
+      height: 34,
+      justifyContent: 'center',
       borderRadius: 999,
       backgroundColor: c.surface,
       borderWidth: 1,
       borderColor: c.border,
     },
     chipActivo: { backgroundColor: c.brand, borderColor: c.brand },
-    chipText: { fontSize: 13.5, fontWeight: '600', color: c.muted },
+    chipText: { fontSize: 13, fontWeight: '600', color: c.muted, lineHeight: 16 },
     chipTextActivo: { color: c.onBrand },
     resumen: { paddingHorizontal: 20, paddingTop: 6, paddingBottom: 4 },
     resumenText: { fontSize: 12.5, color: c.muted, fontWeight: '600' },
