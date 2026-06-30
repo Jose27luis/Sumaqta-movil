@@ -80,6 +80,7 @@ function RootStack() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="mesa/[id]" />
       <Stack.Screen name="cobrar/[id]" />
+      <Stack.Screen name="impresora" />
     </Stack>
   );
 }
