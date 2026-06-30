@@ -15,6 +15,7 @@ import { useSession } from '@/core/auth/session';
 import { usePrinter } from '@/core/printer/printer-store';
 import { useTemaStore } from '@/core/theme/tema-store';
 import { useTema } from '@/core/theme/use-tema';
+import { LimiteError } from '@/shared/ui/limite-error';
 
 function GuardiaAuth() {
   const router = useRouter();
@@ -67,7 +68,9 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <GuardiaAuth />
-      <RootStack />
+      <LimiteError>
+        <RootStack />
+      </LimiteError>
     </QueryClientProvider>
   );
 }
