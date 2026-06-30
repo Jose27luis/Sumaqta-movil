@@ -53,13 +53,22 @@ export async function login(
   password: string
 ): Promise<ResultadoLogin> {
   const baseUrl = resolverBaseUrl(tenant);
-  const { data } = await axios.post<LoginResponse>(
-    `${baseUrl}/login`,
-    { email, password },
-    { timeout: env.requestTimeout }
-  );
+  let data: LoginResponse;
+  try {
+    const respuesta = await axios.post<LoginResponse>(
+      `${baseUrl}/login`,
+      { email, password },
+      { timeout: env.requestTimeout }
+    );
+    data = respuesta.data;
+  } catch (e) {
+    if (axios.isAxiosError(e) && e.response) {
+      throw new Error(`El restaurante respondió con un error (${e.response.status}).`);
+    }
+    throw new Error('Sin conexión con el restaurante. Revisa tu internet.');
+  }
   if (!data.success || !data.token) {
-    throw new Error(data.message ?? 'No se pudo iniciar sesión.');
+    throw new Error(data.message ?? 'PIN incorrecto.');
   }
   return {
     token: data.token,
