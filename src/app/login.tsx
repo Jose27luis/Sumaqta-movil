@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -64,7 +65,11 @@ export default function LoginScreen() {
         >
           <View style={styles.header}>
             <View style={styles.logo}>
-              <Ionicons name="restaurant" size={42} color={c.brand} />
+              <Image
+                source={require('../../assets/images/amantix-logo.png')}
+                style={styles.logoImg}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.title}>Sumaqta</Text>
             <Text style={styles.subtitle}>Toma de pedidos para tu restaurante</Text>
@@ -154,6 +159,7 @@ const crear = (c: Tema) =>
       marginBottom: 16,
       overflow: 'hidden',
     },
+    logoImg: { width: 80, height: 80 },
     title: { fontSize: 27, fontWeight: '800', color: c.text, letterSpacing: -0.5, textAlign: 'center' },
     subtitle: {
       fontSize: 14,
