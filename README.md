@@ -204,4 +204,13 @@ Nuevo (lo que hay que construir):
 
 ## Estado
 
-Planteamiento inicial. Pendiente: aprobar funcionalidades de la sección 6, hacer el scaffold (copiar `core` + `shared` de movilfacturador, `.npmrc`, `package.json`, `app.json`) y arrancar por el Hito 1.
+Hito 1 en progreso. Hecho:
+- Scaffold base copiado de movilfacturador (`core`, `shared`, assets, configs, `.npmrc`, `patches`).
+- Configs adaptadas: `app.json` (name Sumaqta, package `cloud.insoft.sumaqtamovil`), `package.json`.
+- Auth de mozo: `session.ts` (claves `sq-*`, usuario con rol/establecimiento) y `auth.api.ts` (`POST /api/login`).
+- Feature `salon`: tipos, api (`GET /restaurant/tablesAndEnv`) y hook con React Query.
+- Pantallas navegables: layout raíz con guardia de sesión, login de mozo, tabs (Salón / Más), pantalla de Salón con mesas por ambiente y estado por color.
+
+Pendiente del Hito 1: tomar pedido en `mesa/[id]` (catálogo + carrito) y enviar comanda con impresión Bluetooth.
+
+Falta antes de probar en dispositivo: `pnpm install`, configurar EAS (`eas init`) y validar el login contra un tenant real.
