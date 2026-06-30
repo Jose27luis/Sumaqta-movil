@@ -211,6 +211,8 @@ Hito 1 en progreso. Hecho:
 - Feature `salon`: tipos, api (`GET /restaurant/tablesAndEnv`) y hook con React Query.
 - Pantallas navegables: layout raíz con guardia de sesión, login de mozo, tabs (Salón / Más), pantalla de Salón con mesas por ambiente y estado por color.
 
-Pendiente del Hito 1: tomar pedido en `mesa/[id]` (catálogo + carrito) y enviar comanda con impresión Bluetooth.
+- Toma de pedido en `mesa/[id]`: feature `catalogo` (`GET /restaurant/items` y `/restaurant/categories`), carrito por mesa (`features/pedido/bag-store`, Zustand) con búsqueda, filtro por categoría, cantidades y nota por ítem, y hoja inferior de pedido con total.
+
+Pendiente del Hito 1: conectar el envío de comanda al backend (`POST /restaurant/table/{id}` para guardar el pedido y `POST /print-orders` + impresión Bluetooth). Hoy el botón "Enviar comanda" no escribe en el servidor: el payload de mesa es complejo y modifica mesas reales, así que se conecta recién al validar el flujo contra un restaurante de prueba.
 
 Falta antes de probar en dispositivo: `pnpm install`, configurar EAS (`eas init`) y validar el login contra un tenant real.
