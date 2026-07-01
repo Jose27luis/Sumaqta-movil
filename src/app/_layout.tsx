@@ -15,7 +15,13 @@ import { useSession } from '@/core/auth/session';
 import { usePrinter } from '@/core/printer/printer-store';
 import { useTemaStore } from '@/core/theme/tema-store';
 import { useTema } from '@/core/theme/use-tema';
+import { useSocketTiempoReal } from '@/core/socket/use-socket';
 import { LimiteError } from '@/shared/ui/limite-error';
+
+function SocketTiempoReal() {
+  useSocketTiempoReal();
+  return null;
+}
 
 function GuardiaAuth() {
   const router = useRouter();
@@ -68,6 +74,7 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <GuardiaAuth />
+      <SocketTiempoReal />
       <LimiteError>
         <RootStack />
       </LimiteError>
