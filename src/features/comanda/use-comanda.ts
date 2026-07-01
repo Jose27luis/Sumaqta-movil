@@ -1,8 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 
 import { env } from '@/core/config/env';
+import { useSession } from '@/core/auth/session';
 import { usePrinter } from '@/core/printer/printer-store';
 import { imprimirComanda, impresionDisponible } from '@/core/printer/printer';
+import { emitirMesaAbierta } from '@/core/socket/socket';
 import { ItemPedido } from '@/features/pedido/bag-store';
 import { guardarItemComanda, obtenerBatch } from './comanda.api';
 import { ResultadoComanda } from './comanda.types';
@@ -43,6 +45,13 @@ async function enviarComanda(input: EnviarComandaInput): Promise<ResultadoComand
       guardados += 1;
     } catch {
       fallidos += 1;
+    }
+  }
+
+  if (guardados > 0) {
+    const ruc = useSession.getState().usuario?.ruc;
+    if (ruc) {
+      emitirMesaAbierta(mesaId, ruc);
     }
   }
 
